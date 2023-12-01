@@ -12,6 +12,30 @@ Suite Teardown      Close All Connections
 *** Test Cases ***
 
 
+OP-TEE xtest
+       [Documentation]  Runs OP-TEE's xtest
+       ...
+       ...              NOTE: About fail and failures!!
+       ...              As a background then currently three test cases are failing within
+       ...              xtest full run and therefore these test cases are excluded from
+       ...              full run. They fail due bug/issues within OP-TEE. As soon as fixes
+       ...              are introduced then xtest-test suite should be updated!
+       ...
+       ...              If one of the "Expect failure from xtest XXXX" test success then:
+       ...
+       ...              1. Remove corresponding "-n"-flag from full xtest run
+       ...
+       ...              2. Delete corresponding Expect failure from xtest XXXX" test case
+       ...
+       ...              If everything fixed (no more "-n"-flags), remove this comment!!
+       [Tags]  optee-xtest
+
+       Full xtest
+       Expect failure from xtest 1008
+       Expect failure from xtest 1033
+       Expect failure from xtest 4016_ed25519
+
+
 Basic pkcs11-tool-optee test
     [Documentation]   Test OP-TEE PKCS#11 through pkcs11-tool-optee wrapper.
     ...               Basic test which initalizes key slots, by directly
@@ -25,7 +49,6 @@ Basic pkcs11-tool-optee test
     Test Public Key usage    ${tool}    keyid=2    keylabel=eckey0    mechanism=ECDSA-SHA256
     List key slots    ${tool}
     List objects    ${tool}
-
 
 # These two tests are for the ghaf-caml-crush, which is not included in the
 # default build, but the tests are included here for convenience.
@@ -57,6 +80,46 @@ Basic pkcs11-tool-caml-crush test
 
 
 *** Keywords ***
+
+Full xtest
+    [Documentation]   Runs all OP-TEE's xtest
+    ...
+    ...               NOTE About fail: Test suite comment!!
+
+    ${stdout}    ${stderr}    ${rc}=    Execute Command    xtest -x 1008 -x 1033 -x 4016_ed25519    sudo=True    sudo_password=${PASSWORD}    return_stdout=True    return_stderr=True    return_rc=True
+    Log     ${stdout}
+    Should Be Equal As Integers    ${rc}    0
+
+
+Expect failure from xtest 1008
+    [Documentation]   Expects failure from 1008.
+    ...
+    ...               NOTE About fail: Test suite comment!!
+    ...
+    ...               Fix: xtest TA load path wrong
+
+    ${stdout}    ${stderr}    ${rc}=    Execute Command    xtest 1008   sudo=True    sudo_password=${PASSWORD}    return_stdout=True    return_stderr=True    return_rc=True
+    Should Be Equal As Integers    ${rc}    1
+
+Expect failure from xtest 1033
+    [Documentation]   Expects failure from 1033.
+    ...
+    ...               NOTE About fail: Test suite comment!!
+    ...
+    ...               Fix: OP-TEE requires plugin load path
+
+    ${stdout}    ${stderr}    ${rc}=    Execute Command    xtest 1033   sudo=True    sudo_password=${PASSWORD}    return_stdout=True    return_stderr=True    return_rc=True
+    Should Be Equal As Integers    ${rc}    1
+
+Expect failure from xtest 4016_ed25519
+    [Documentation]   Expects failure from 4016_ed25519.
+    ...
+    ...               NOTE About fail: Test suite comment!!
+    ...
+    ...               Fix: OP-TEE requires patch: https://github.com/OP-TEE/optee_os/commit/e4c24b7f9f1afbdd7a48766007cf0055b4b8df6b
+
+    ${stdout}    ${stderr}    ${rc}=    Execute Command    xtest 4016_ed25519   sudo=True    sudo_password=${PASSWORD}    return_stdout=True    return_stderr=True    return_rc=True
+    Should Be Equal As Integers    ${rc}    1
 
 
 List key slots
